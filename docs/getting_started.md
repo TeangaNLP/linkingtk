@@ -16,13 +16,37 @@ pieces fit together.
 ## Installation
 
 ```bash
-uv sync --extra graph --extra nlp --group dev
+pip install linkingtk
 ```
 
-`graph` and `nlp` pull in optional dependencies (NetworkX/RDFLib, spaCy)
-used by some algorithms and datasets. Other extras (`kge`, `wn`, `wikipedia`,
-`vector-index`, `llm`, or `all`) add support for specific algorithms and data
-sources — pull them in as you need them.
+The core install covers the shared interface and the transformer-based
+linkers. Optional extras add support for specific algorithms and data
+sources — pull them in as you need them:
+
+| Extra | Adds |
+|---|---|
+| `graph` | NetworkX / RDFLib graph helpers |
+| `nlp` | spaCy |
+| `kge` | PyKEEN and the knowledge-graph-embedding EA linkers |
+| `wn` | WordNet via the `wn` package |
+| `wikipedia` | Wikipedia / Wikidata HTTP sources |
+| `vector-index` | FAISS + sentence-transformers vector indexes |
+| `llm` | OpenAI / Anthropic clients for LLM-based linkers |
+| `server` | FastAPI / Uvicorn REST server mode |
+| `all` | everything above |
+
+```bash
+pip install "linkingtk[graph,nlp]"
+```
+
+To work on LinkingTK itself, clone the repository and use
+[uv](https://docs.astral.sh/uv/):
+
+```bash
+git clone https://github.com/teangaNLP/linkingtk.git
+cd linkingtk
+uv sync --extra graph --extra nlp --group dev
+```
 
 ## The core interface
 

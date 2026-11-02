@@ -7,7 +7,7 @@ from linkingtk.core.result import AlignmentResult
 from linkingtk.core.source import CachingEntitySource, EntitySource
 from linkingtk.exceptions import LinkingTKError
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "Entity",

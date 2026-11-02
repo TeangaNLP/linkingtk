@@ -1,11 +1,38 @@
 [project]
 name = "linkingtk"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A toolkit unifying Entity Alignment, Entity Linking, Word Sense Disambiguation and Word Sense Alignment."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "John P. McCrae", email = "john@mccr.ae" }]
+keywords = [
+    "entity-alignment",
+    "entity-linking",
+    "word-sense-disambiguation",
+    "word-sense-alignment",
+    "knowledge-graphs",
+    "nlp",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+    "Typing :: Typed",
+]
 dependencies = [
+    "numpy>=1.24",
+    "torch>=2.1",
     "transformers>=4.40",
     "datasets>=2.19",
     "huggingface-hub>=0.24",
@@ -15,6 +42,12 @@ dependencies = [
     "pyyaml>=6.0",
     "tqdm>=4.60",
 ]
+
+[project.urls]
+Homepage = "https://teanga.io/linkingtk/"
+Documentation = "https://teanga.io/linkingtk/"
+Source = "https://github.com/teangaNLP/linkingtk"
+Issues = "https://github.com/teangaNLP/linkingtk/issues"
 
 [project.optional-dependencies]
 graph = ["networkx>=3.0", "rdflib>=7.0"]
@@ -47,11 +80,23 @@ docs = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/linkingtk/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/linkingtk"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/linkingtk",
+    "tests",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
 
 [tool.ruff]
 line-length = 100
