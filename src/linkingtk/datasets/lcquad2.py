@@ -80,7 +80,7 @@ _LABEL_BATCH_SIZE = 50
 _MAX_RETRIES = 5
 # Wikidata's API (like Wikipedia's) 403s on urllib's default User-Agent --
 # it requires a descriptive one identifying the client.
-_USER_AGENT = "linkingtk/0.1 (https://github.com/jmccrae/linkingtk)"
+_USER_AGENT = "linkingtk/0.1 (https://github.com/teangaNLP/linkingtk)"
 
 _QID_RE = re.compile(r"\bwd:(Q\d+)\b")
 

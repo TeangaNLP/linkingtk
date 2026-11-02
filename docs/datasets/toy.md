@@ -64,5 +64,5 @@ left, right, ground_truth = ConferenceDataset().load()
 
 Both accept a `base_url` override (a URL or `file://` path) if you want to
 point them at a local copy instead of GitHub, which is how
-[`tests/datasets/test_naisc.py`](https://github.com/jmccrae/linkingtk/blob/main/tests/datasets/test_naisc.py)
+[`tests/datasets/test_naisc.py`](https://github.com/teangaNLP/linkingtk/blob/main/tests/datasets/test_naisc.py)
 exercises them against fixtures without a network call.

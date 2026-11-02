@@ -9,7 +9,7 @@ recall, F1).
 **Candidate-restricted, not exhaustive** — unlike the EA/KGE benchmarks
 on the [previous page](ea_kge_benchmarks.md), which rank exhaustively
 because OpenEA's own reference methodology (`greedy_alignment`) does too
-(see [issue #37](https://github.com/jmccrae/linkingtk/issues/37)),
+(see [issue #37](https://github.com/teangaNLP/linkingtk/issues/37)),
 ReFinED's own methodology is *not* exhaustive: it restricts each mention
 to its top-30 candidates by entity prior before scoring at all (Section
 4.4, "Candidate generation," of Ayoola et al. 2022). Ranking this repo's
@@ -105,7 +105,7 @@ Wikipedia pretraining stage — only 3 epochs directly on AIDA-CoNLL's
 `distilbert-base-uncased` checkpoint; a cruder lexical `LabelOverlap`
 candidate generator standing in for ReFinED's popularity-informed entity
 priors) turned out not to cost anything measurable once the real bugs
-were gone. See [issue #45](https://github.com/jmccrae/linkingtk/issues/45).
+were gone. See [issue #45](https://github.com/teangaNLP/linkingtk/issues/45).
 
 ## BlinkLinker
 
@@ -203,4 +203,4 @@ and two further concrete hypotheses were tested and ruled out (model size;
 blocking strategy) rather than assumed, this remaining ~10-point gap is
 recorded as an honest, diagnosed shortfall from that one structural
 difference, not an unexamined one. See
-[issue #46](https://github.com/jmccrae/linkingtk/issues/46).
+[issue #46](https://github.com/teangaNLP/linkingtk/issues/46).
