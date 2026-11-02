@@ -9,9 +9,22 @@ interface:
 - **Word Sense Alignment (WSA)** — matching senses between two dictionaries.
 
 See the generated documentation at
-[john.mccr.ae/linkingtk](https://john.mccr.ae/linkingtk/) for a
+[teanga.io/linkingtk](https://teanga.io/linkingtk/) for a
 Getting Started guide, the `Entity`/`BaseLinker` design (Key Concepts),
 dataset references, and the full API reference.
+
+## Installation
+
+```bash
+pip install linkingtk
+# with optional extras, e.g.
+pip install "linkingtk[graph,nlp,kge]"
+```
+
+Available extras: `graph`, `nlp`, `kge`, `wn`, `wikipedia`, `vector-index`,
+`llm`, and `all`. See the
+[installation guide](https://teanga.io/linkingtk/getting_started/#installation)
+for what each one adds.
 
 ## Project layout
 
@@ -31,7 +44,7 @@ linkingtk/
 └── examples/                   # Runnable sample scripts
 ```
 
-## Getting started
+## Development setup
 
 ```bash
 uv sync --extra graph --extra nlp --group dev
@@ -60,4 +73,4 @@ Docs are built and deployed to GitHub Pages automatically on every push to
 
 ## License
 
-Apache License 2.0 — see [`LICENSE`](./LICENSE).
+Apache License 2.0 — see [`LICENSE`](https://github.com/teangaNLP/linkingtk/blob/main/LICENSE).

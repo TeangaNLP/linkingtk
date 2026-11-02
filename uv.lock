@@ -1552,17 +1552,18 @@ wheels = [
 
 [[package]]
 name = "linkingtk"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "datasets" },
     { name = "huggingface-hub" },
+    { name = "numpy" },
     { name = "peft" },
     { name = "pyyaml" },
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "torch" },
     { name = "tqdm" },
     { name = "transformers" },
 ]
@@ -1629,30 +1630,43 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", marker = "extra == 'all'", specifier = ">=0.40" },
     { name = "anthropic", marker = "extra == 'llm'", specifier = ">=0.40" },
     { name = "datasets", specifier = ">=2.19" },
+    { name = "faiss-cpu", marker = "extra == 'all'", specifier = ">=1.8" },
     { name = "faiss-cpu", marker = "extra == 'vector-index'", specifier = ">=1.8" },
+    { name = "gensim", marker = "extra == 'all'", specifier = ">=4.0" },
     { name = "gensim", marker = "extra == 'kge'", specifier = ">=4.0" },
     { name = "huggingface-hub", specifier = ">=0.24" },
-    { name = "linkingtk", extras = ["graph", "nlp", "kge", "wn", "wikipedia", "vector-index", "llm"], marker = "extra == 'all'" },
+    { name = "networkx", marker = "extra == 'all'", specifier = ">=3.0" },
     { name = "networkx", marker = "extra == 'graph'", specifier = ">=3.0" },
     { name = "networkx", marker = "extra == 'kge'", specifier = ">=3.0" },
+    { name = "numpy", specifier = ">=1.24" },
+    { name = "openai", marker = "extra == 'all'", specifier = ">=1.50" },
     { name = "openai", marker = "extra == 'llm'", specifier = ">=1.50" },
     { name = "peft", specifier = ">=0.11" },
+    { name = "pykeen", marker = "extra == 'all'", specifier = ">=1.10" },
     { name = "pykeen", marker = "extra == 'kge'", specifier = ">=1.10" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "rapidfuzz", marker = "extra == 'all'", specifier = ">=3.14.5" },
     { name = "rapidfuzz", marker = "extra == 'kge'", specifier = ">=3.14.5" },
+    { name = "rdflib", marker = "extra == 'all'", specifier = ">=7.0" },
     { name = "rdflib", marker = "extra == 'graph'", specifier = ">=7.0" },
+    { name = "requests", marker = "extra == 'all'", specifier = ">=2.31" },
     { name = "requests", marker = "extra == 'wikipedia'", specifier = ">=2.31" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
     { name = "scipy", specifier = ">=1.15" },
+    { name = "sentence-transformers", marker = "extra == 'all'", specifier = ">=3.0" },
     { name = "sentence-transformers", marker = "extra == 'vector-index'", specifier = ">=3.0" },
+    { name = "spacy", marker = "extra == 'all'", specifier = ">=3.7" },
     { name = "spacy", marker = "extra == 'nlp'", specifier = ">=3.7" },
+    { name = "torch", specifier = ">=2.1" },
     { name = "tqdm", specifier = ">=4.60" },
     { name = "transformers", specifier = ">=4.40" },
+    { name = "wn", marker = "extra == 'all'", specifier = ">=0.9" },
     { name = "wn", marker = "extra == 'wn'", specifier = ">=0.9" },
 ]
-provides-extras = ["graph", "nlp", "kge", "wn", "wikipedia", "vector-index", "llm", "all"]
+provides-extras = ["all", "graph", "kge", "llm", "nlp", "vector-index", "wikipedia", "wn"]
 
 [package.metadata.requires-dev]
 dev = [
