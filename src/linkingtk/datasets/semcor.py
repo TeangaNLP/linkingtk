@@ -46,7 +46,7 @@ _SOURCE = "globalwordnet/semcor"
 _REF = "main"
 _API_BASE = "https://api.github.com"
 _RAW_BASE = "https://raw.githubusercontent.com"
-_USER_AGENT = "linkingtk/0.1 (https://github.com/jmccrae/linkingtk)"
+_USER_AGENT = "linkingtk/0.1 (https://github.com/teangaNLP/linkingtk)"
 
 
 def _list_yaml_files(source: str, ref: str, cache_dir: Path | None) -> list[str]:

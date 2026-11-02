@@ -3,7 +3,7 @@
 [`LlmRerankerLinker`](../reference/algorithms.md) re-ranks
 [`BlinkLinker`](el_benchmarks.md)'s own top-k bi-encoder candidates with a
 real local LLM. Filed as
-[#23](https://github.com/jmccrae/linkingtk/issues/23) -- unlike
+[#23](https://github.com/teangaNLP/linkingtk/issues/23) -- unlike
 [ChatEA](chatea_ea.md) (#22), this isn't a port of a specific paper; it
 generalizes the same "cheap retrieval, then let an LLM re-rank only the
 top-k" idea to Entity Linking, reusing this repo's already-benchmarked
@@ -102,5 +102,5 @@ summarized here:
   entity rather than dropping it, since a reranker always has a real base
   score to fall back to.
 
-This closes out [#23](https://github.com/jmccrae/linkingtk/issues/23)'s
+This closes out [#23](https://github.com/teangaNLP/linkingtk/issues/23)'s
 EL half.

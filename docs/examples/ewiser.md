@@ -167,7 +167,7 @@ happens.
 bar. EWISER's own published results critically depend on initializing
 the output layer (`decoder.logits.weight`) from externally pretrained
 LMMS/SensEmBERT sense embeddings; loaders for those vectors were added in
-[issue #57](https://github.com/jmccrae/linkingtk/issues/57) (see
+[issue #57](https://github.com/teangaNLP/linkingtk/issues/57) (see
 [Loading LMMS/SensEmBERT sense embeddings](#loading-lmmssensembert-sense-embeddings)),
 but this script doesn't use them -- from-scratch training here starts
 that layer randomly. The point is to verify the *training code itself* --
@@ -240,7 +240,7 @@ slice.
 and notes that the paper's own published numbers depend on initializing
 that layer from externally pretrained LMMS/SensEmBERT sense embeddings
 instead (Section 4.2, "Output Embeddings", of the paper) -- this example
-exercises the [issue #57](https://github.com/jmccrae/linkingtk/issues/57)
+exercises the [issue #57](https://github.com/teangaNLP/linkingtk/issues/57)
 loaders that make that possible:
 [`load_synset_centroid_vectors`](../reference/algorithms.md) and
 [`build_synset_centroid_vectors_from_lmms`](../reference/algorithms.md).

@@ -112,7 +112,7 @@ branch has no such problem: it comes from one shared pretrained language
 model (ALBERT), so embeddings from both sides land in the same space by
 construction.
 
-**[`examples/simple_hhea_ea.py`](https://github.com/jmccrae/linkingtk/blob/main/examples/simple_hhea_ea.py)
+**[`examples/simple_hhea_ea.py`](https://github.com/teangaNLP/linkingtk/blob/main/examples/simple_hhea_ea.py)
 therefore uses `use_structure=False`** for this specific benchmark, based
 on this evidence. `SimpleHHEALinker`'s own constructor default remains
 `use_structure=True` -- faithful to the reference, and plausibly still
@@ -167,7 +167,7 @@ module docstring for the full reasoning:
   reverse-engineering the reference's `ref_ent_ids[:1500]` file-position
   slice.
 
-This is the base embedding method [#22 (ChatEA)](https://github.com/jmccrae/linkingtk/issues/22)
+This is the base embedding method [#22 (ChatEA)](https://github.com/teangaNLP/linkingtk/issues/22)
 will build its LLM-reranking benchmark on top of, for a genuine
 comparison against the ChatEA paper's own published llama2-13b number --
 not [`KGELinker`](ea_kge_benchmarks.md), which uses a different
