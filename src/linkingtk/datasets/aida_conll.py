@@ -39,7 +39,7 @@ _WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
 _EXTRACT_BATCH_SIZE = 50
 # Wikipedia's API 403s on urllib's default User-Agent -- it requires a
 # descriptive one identifying the client, per its API etiquette policy.
-_USER_AGENT = "linkingtk/0.1 (https://github.com/jmccrae/linkingtk)"
+_USER_AGENT = "linkingtk/0.1 (https://github.com/teangaNLP/linkingtk)"
 
 DescriptionFetcher = Callable[[list[str]], dict[str, str]]
 

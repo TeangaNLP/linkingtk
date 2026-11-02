@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 _DISAMBIGUATOR_RE = re.compile(r"^(?P<base>.+?)\s*\((?P<topic>[^()]+)\)$")
 
-_USER_AGENT = "linkingtk/0.1 (https://github.com/jmccrae/linkingtk)"
+_USER_AGENT = "linkingtk/0.1 (https://github.com/teangaNLP/linkingtk)"
 
 
 def _clean_snippet(snippet: str) -> str:

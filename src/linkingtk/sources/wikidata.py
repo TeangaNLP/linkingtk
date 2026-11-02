@@ -31,7 +31,7 @@ from linkingtk.sources.vector_index import VectorIndexEntitySource
 if TYPE_CHECKING:
     import requests
 
-_USER_AGENT = "linkingtk/0.1 (https://github.com/jmccrae/linkingtk)"
+_USER_AGENT = "linkingtk/0.1 (https://github.com/teangaNLP/linkingtk)"
 
 
 def _is_url(path: str) -> bool:

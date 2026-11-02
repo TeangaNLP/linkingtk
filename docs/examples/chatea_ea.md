@@ -122,4 +122,4 @@ docstrings -- summarized here:
   running; the actual algorithm (candidate windowing, weighted scoring,
   thresholds, rethinking, chat history) is ported faithfully.
 
-This closes out [#22](https://github.com/jmccrae/linkingtk/issues/22).
+This closes out [#22](https://github.com/teangaNLP/linkingtk/issues/22).

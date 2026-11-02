@@ -19,7 +19,7 @@ method's published target.
 right tool for production-scale linking (see [the smaller `kge_ea.py`
 demo](kge_ea.md)) but is deliberately not used for benchmark *scoring*
 here — see issue
-[#37](https://github.com/jmccrae/linkingtk/issues/37) for why.
+[#37](https://github.com/teangaNLP/linkingtk/issues/37) for why.
 
 Requires the `kge` optional dependency group — install with
 `uv sync --extra kge`. Fetches a ~28MB zip over the network the first time
@@ -111,7 +111,7 @@ optimizer only included the mapping matrix (the more "obvious" reading
 of the algorithm), silently dropping that second training signal and
 leaving the mapping loss converging roughly an order of magnitude
 slower than OpenEA's real training run. See
-[issue #26](https://github.com/jmccrae/linkingtk/issues/26). A separate,
+[issue #26](https://github.com/teangaNLP/linkingtk/issues/26). A separate,
 smaller factor: this example now uses `EnFr15KAttrDataset` instead of
 `EnFr15KDataset`, since the latter's rehosted zip is missing ~20% of
 relation triples relative to OpenEA's own release.
@@ -149,14 +149,14 @@ Metrics: {'Hits@1': 0.21123809523809522, 'Hits@10': 0.45485714285714285, 'MRR': 
 **Clears IPTransE's own published EN-FR-15K-V1 numbers**
 (Hits@1=0.169, Hits@10=0.390, MRR=0.243). This section previously
 reported Hits@1=0.117 -- unlike
-[MTransE](https://github.com/jmccrae/linkingtk/issues/26)/[KDCoE](https://github.com/jmccrae/linkingtk/issues/29),
+[MTransE](https://github.com/teangaNLP/linkingtk/issues/26)/[KDCoE](https://github.com/teangaNLP/linkingtk/issues/29),
 IPTransE's own optimizers already covered every trainable variable
 correctly (it uses OpenEA's "sharing" alignment module, with no separate
 mapping matrix to under-scope). The gap here was entirely the dataset:
 this example now uses `EnFr15KAttrDataset` instead of `EnFr15KDataset`,
 whose rehosted zip is missing ~20% of relation triples relative to
 OpenEA's own release. See
-[issue #27](https://github.com/jmccrae/linkingtk/issues/27), now closed.
+[issue #27](https://github.com/teangaNLP/linkingtk/issues/27), now closed.
 
 ## JAPE
 
@@ -219,7 +219,7 @@ training. This port now matches OpenEA's real (not its apparent)
 behavior -- `fit()` still trains Attr2Vec and builds the
 attribute-similarity matrix, exposed via `attr_sim_mat_` for inspection,
 but never uses it to update the structural embeddings. See
-[issue #28](https://github.com/jmccrae/linkingtk/issues/28), now closed.
+[issue #28](https://github.com/teangaNLP/linkingtk/issues/28), now closed.
 
 ## KDCoE
 
@@ -271,7 +271,7 @@ Metrics: {'Hits@1': 0.4855238095238095, 'Hits@10': 0.6959047619047619, 'MRR': 0.
 ≥90%-relative acceptance bar of 0.523). This section previously reported
 Hits@1=0.061 under exhaustive ranking, then 0.202 after
 fixing [`MTransELinker`][linkingtk.algorithms.ea.mtranse.MTransELinker]'s
-shared mapping-loss bug (see [issue #26](https://github.com/jmccrae/linkingtk/issues/26)),
+shared mapping-loss bug (see [issue #26](https://github.com/teangaNLP/linkingtk/issues/26)),
 which KDCoE's structural half also has.
 
 At that point KDCoE's co-training loop had been diagnosed as contributing
@@ -308,7 +308,7 @@ the rehost was already faithful; the description pathway's weak per-entity
 text was never the real bottleneck. The remaining ~4-point Hits@1 gap is
 reported as-is rather than chased further, per this milestone's precedent
 of documenting an honest shortfall once the diagnosis is solid. See
-[issue #29](https://github.com/jmccrae/linkingtk/issues/29), now closed.
+[issue #29](https://github.com/teangaNLP/linkingtk/issues/29), now closed.
 
 ## BootEA
 
@@ -415,7 +415,7 @@ previously reported (Hits@1=0.823) -- unlike MTransE/IPTransE/JAPE/KDCoE
 above, AttrE's character/attribute-embedding half gives it enough
 discriminative signal to keep clearing its target under genuinely
 exhaustive ranking. See
-[issue #37](https://github.com/jmccrae/linkingtk/issues/37).
+[issue #37](https://github.com/teangaNLP/linkingtk/issues/37).
 
 ## IMUSE
 
@@ -466,7 +466,7 @@ smaller margin than the blocking-restricted number this section
 previously reported (Hits@1=0.811) -- like AttrE above, IMUSE's
 attribute-value bootstrap gives it enough discriminative signal to keep
 clearing its target under genuinely exhaustive ranking. See
-[issue #37](https://github.com/jmccrae/linkingtk/issues/37). Note
+[issue #37](https://github.com/teangaNLP/linkingtk/issues/37). Note
 `name_sim_threshold=0.9` above, not `IMUSELinker`'s own literal-reference
 default of `0.6` -- diagnosed directly (not assumed): at `0.6`, a
 spurious attribute-predicate pairing (`.../ontology/games` and
@@ -548,7 +548,7 @@ entity's candidate pool to at most 10 before the linker's own embeddings
 ever ranked anything -- a structurally different (and easier) task than
 OpenEA's own published methodology, which ranks every test-source entity
 against the *full* test-target pool (`greedy_alignment`, no candidate
-restriction). [Issue #37](https://github.com/jmccrae/linkingtk/issues/37)
+restriction). [Issue #37](https://github.com/teangaNLP/linkingtk/issues/37)
 replaced blocking-restricted benchmark scoring with
 [`rank_exhaustive`](../reference/eval.md), matching OpenEA's methodology
 exactly -- every number on this page reflects that. The result was not
@@ -603,14 +603,14 @@ Metrics: {'Hits@1': 0.31923809523809527, 'Hits@10': 0.6981904761904761, 'MRR': 0
 **Clears SEA's own published EN-FR-15K-V1 numbers on all three metrics**
 (Hits@1=0.280, Hits@10=0.642, MRR=0.397) on the first real-dataset run --
 no reopening/reworking needed, same clean outcome as
-[BootEA](https://github.com/jmccrae/linkingtk/issues/30). The two-mapping-
+[BootEA](https://github.com/teangaNLP/linkingtk/issues/30). The two-mapping-
 matrix supervised term plus the semi-supervised cycle-consistency term over
 unlabeled entities (this repo's stand-in for OpenEA's own `test_links +
 valid_links` pool -- see
 [`SEALinker`][linkingtk.algorithms.ea.sea.SEALinker]'s module docstring)
 together give a stronger alignment signal than MTransE's single-matrix
 mapping loss, consistent with the two methods' published gap. See
-[issue #33](https://github.com/jmccrae/linkingtk/issues/33), now closed.
+[issue #33](https://github.com/teangaNLP/linkingtk/issues/33), now closed.
 
 ## RSN4EA
 
@@ -678,5 +678,5 @@ instead, which alone took Hits@1 from 0.333 to ~0.35. The remaining gap on
 Hits@1 specifically (Hits@10/MRR already clear their targets) is reported
 as-is rather than chased further, per this milestone's precedent of
 documenting an honest shortfall once the diagnosis is solid (see
-[KDCoE](https://github.com/jmccrae/linkingtk/issues/29) above). See
-[issue #34](https://github.com/jmccrae/linkingtk/issues/34), now closed.
+[KDCoE](https://github.com/teangaNLP/linkingtk/issues/29) above). See
+[issue #34](https://github.com/teangaNLP/linkingtk/issues/34), now closed.

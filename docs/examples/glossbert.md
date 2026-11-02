@@ -253,7 +253,7 @@ nohup uv run python examples/glossbert_full_training.py \
 
 [`LlmRerankerLinker`](../reference/algorithms.md) re-ranks
 `GlossBertLinker`'s own top-k candidate senses with a real local LLM.
-Filed as [#23](https://github.com/jmccrae/linkingtk/issues/23) -- unlike
+Filed as [#23](https://github.com/teangaNLP/linkingtk/issues/23) -- unlike
 [ChatEA](chatea_ea.md) (#22), this isn't a port of a specific paper;
 it generalizes the same "cheap retrieval, then let an LLM re-rank only
 the top-k" idea to Word Sense Disambiguation, reusing this repo's
@@ -346,5 +346,5 @@ summarized here:
   entity rather than dropping it, since a reranker always has a real base
   score to fall back to.
 
-This closes out [#23](https://github.com/jmccrae/linkingtk/issues/23)'s
+This closes out [#23](https://github.com/teangaNLP/linkingtk/issues/23)'s
 WSD half.
