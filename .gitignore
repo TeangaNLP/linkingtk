@@ -19,3 +19,4 @@ data/*
 
 # Trained model checkpoints written by examples/*.py (e.g. Trainer's output_dir)
 models/
+wikidata_index*
