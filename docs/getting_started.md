@@ -32,6 +32,7 @@ sources — pull them in as you need them:
 | `wikipedia` | Wikipedia / Wikidata HTTP sources |
 | `vector-index` | FAISS + sentence-transformers vector indexes |
 | `llm` | OpenAI / Anthropic clients for LLM-based linkers |
+| `server` | FastAPI / Uvicorn REST server mode |
 | `all` | everything above |
 
 ```bash

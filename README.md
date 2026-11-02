@@ -22,7 +22,7 @@ pip install "linkingtk[graph,nlp,kge]"
 ```
 
 Available extras: `graph`, `nlp`, `kge`, `wn`, `wikipedia`, `vector-index`,
-`llm`, and `all`. See the
+`llm`, `server`, and `all`. See the
 [installation guide](https://teanga.io/linkingtk/getting_started/#installation)
 for what each one adds.
 
