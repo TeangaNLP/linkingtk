@@ -67,6 +67,11 @@ class TrainingArguments:
         max_grad_norm: Clip the global gradient norm to this value before
             each optimizer step (``CrossEncoderTrainer`` only). ``None``
             (the default) disables clipping.
+        micro_batch_size: Split each ``batch_size`` batch into micro-batches
+            of this many pairs, accumulating gradients before one optimizer
+            step (``CrossEncoderTrainer`` only) -- same gradient as the full
+            batch, bounded activation memory. ``None`` (the default) runs
+            the whole batch at once.
     """
 
     output_dir: str
@@ -84,3 +89,4 @@ class TrainingArguments:
     warmup_ratio: float = 0.0
     lr_scheduler: Literal["linear", "cosine"] = "linear"
     max_grad_norm: float | None = None
+    micro_batch_size: int | None = None

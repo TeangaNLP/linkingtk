@@ -7,6 +7,9 @@ paper (arXiv 2503.05958, Sec. 3.2/4.1, Table 7):
 - Backbone ``microsoft/deberta-v3-small``; binary cross-entropy on the
   2-class logit margin; AdamW (weight decay 0.01), lr 2e-5, batch 64,
   10 epochs, cosine annealing, gradient clipping at 1.0, max 512 tokens.
+  Each batch of 64 is run as gradient-accumulated micro-batches of 16 (an
+  identical gradient) so long SemCor pairs fit in a 24GB GPU in fp32 --
+  the paper trained on 2x A100.
 - "We generate positive and negative examples by sampling from the
   neighborhoods of correct and incorrect senses ... all elements within a
   neighborhood share the same label": positives are each gold sense plus
@@ -145,6 +148,12 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument(
+        "--micro-batch-size",
+        type=int,
+        default=16,
+        help="Gradient-accumulation chunk (same gradient as --batch-size; bounds GPU memory)",
+    )
     parser.add_argument("--pos-neighbours", type=int, default=3)
     parser.add_argument("--neg-neighbours", type=int, default=2)
     parser.add_argument("--max-negatives", type=int, default=12)
@@ -208,6 +217,7 @@ def main() -> None:
             weight_decay=0.01,
             lr_scheduler="cosine",
             max_grad_norm=1.0,
+            micro_batch_size=args.micro_batch_size,
         )
         CrossEncoderTrainer(
             model=encoder,

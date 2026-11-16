@@ -193,18 +193,30 @@ class CrossEncoderTrainer:
             loss_total = 0.0
             for start in range(0, len(shuffled), args.batch_size):
                 batch = shuffled[start : start + args.batch_size]
-                pairs = [(entity1, entity2) for entity1, entity2, _label in batch]
-                labels = torch.tensor([label for _entity1, _entity2, label in batch], device=device)
-                logits = self.model.score(pairs)
-                loss = functional.binary_cross_entropy_with_logits(logits, labels)
                 optimizer.zero_grad()
-                loss.backward()  # type: ignore[no-untyped-call]
+                # Gradient accumulation over micro-batches: each micro-batch's mean
+                # loss is weighted by its share of the batch, so the accumulated
+                # gradient equals the full batch's mean-loss gradient exactly.
+                micro = args.micro_batch_size or len(batch)
+                batch_loss = 0.0
+                for micro_start in range(0, len(batch), micro):
+                    chunk = batch[micro_start : micro_start + micro]
+                    pairs = [(entity1, entity2) for entity1, entity2, _label in chunk]
+                    labels = torch.tensor(
+                        [label for _entity1, _entity2, label in chunk], device=device
+                    )
+                    logits = self.model.score(pairs)
+                    loss = functional.binary_cross_entropy_with_logits(logits, labels) * (
+                        len(chunk) / len(batch)
+                    )
+                    loss.backward()  # type: ignore[no-untyped-call]
+                    batch_loss += float(loss.item())
                 if args.max_grad_norm is not None:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), args.max_grad_norm)
                 optimizer.step()
                 if scheduler is not None:
                     scheduler.step()
-                loss_total += float(loss.item())
+                loss_total += batch_loss
 
             mean_loss = loss_total / max(num_batches_per_epoch, 1)
 
