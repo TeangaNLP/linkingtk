@@ -1,4 +1,4 @@
-"""Shared AdamW + linear-warmup optimizer construction.
+"""Shared AdamW + warmup/decay-scheduler optimizer construction.
 
 Used by both [Trainer][linkingtk.train.trainer.Trainer] and
 [CrossEncoderTrainer][linkingtk.train.cross_encoder.CrossEncoderTrainer].
@@ -25,9 +25,10 @@ def build_optimizer(
 
     Bias and LayerNorm parameters never get weight decay, matching
     standard BERT fine-tuning convention regardless of `args.weight_decay`.
-    `args.warmup_ratio <= 0.0` (the default) returns ``None`` for the
-    scheduler -- every caller's plain constant-LR ``AdamW`` behavior from
-    before these fields existed.
+    With ``args.lr_scheduler == "linear"`` (the default),
+    `args.warmup_ratio <= 0.0` returns ``None`` for the scheduler -- every
+    caller's plain constant-LR ``AdamW`` behavior from before these fields
+    existed. ``"cosine"`` always returns a cosine-annealing scheduler.
     """
     named_params = list(model.named_parameters())
     grouped = [
@@ -41,6 +42,16 @@ def build_optimizer(
         },
     ]
     optimizer = torch.optim.AdamW(grouped, lr=args.learning_rate)
+    num_warmup_steps = int(max(args.warmup_ratio, 0.0) * num_training_steps)
+    if args.lr_scheduler == "cosine":
+        from transformers import get_cosine_schedule_with_warmup
+
+        cosine = get_cosine_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=num_warmup_steps,
+            num_training_steps=num_training_steps,
+        )
+        return optimizer, cosine
     if args.warmup_ratio <= 0.0:
         return optimizer, None
 
@@ -48,7 +59,7 @@ def build_optimizer(
 
     scheduler = get_linear_schedule_with_warmup(  # type: ignore[no-untyped-call]
         optimizer,
-        num_warmup_steps=int(args.warmup_ratio * num_training_steps),
+        num_warmup_steps=num_warmup_steps,
         num_training_steps=num_training_steps,
     )
     return optimizer, scheduler

@@ -168,6 +168,10 @@
 
 ::: linkingtk.algorithms.wsd._esc_text
 
+### SANDWiCH
+
+::: linkingtk.algorithms.wsd.sandwich
+
 ## Word Sense Alignment
 
 ::: linkingtk.algorithms.wsa

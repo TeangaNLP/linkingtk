@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import random
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -108,6 +109,15 @@ class CrossEncoderTrainer:
             [GlossBertLinker][linkingtk.algorithms.wsd.glossbert.GlossBertLinker]'s
             own ``link()``, same held-out mentions, same trained model --
             always pass the real `dataset2` for WSD.
+        negative_data: Explicit ``(source_entity, target_entity)``
+            negative pairs. When given, these are used *instead of*
+            mining hard negatives via `blocking` -- for methods whose
+            negatives are defined by the method itself (e.g.
+            [SandwichLinker][linkingtk.algorithms.wsd.sandwich.SandwichLinker]'s
+            wrong senses plus their graph neighbours).
+        on_epoch_end: Optional callback invoked with the 0-based epoch
+            index after each epoch's checkpoint is saved (e.g. to run a
+            method-specific dev evaluation and keep the best epoch).
         blocking: Strategy used to mine hard negatives from ``train_data``
             (via
             [sample_hard_negatives][linkingtk.blocking.negative_sampling.sample_hard_negatives])
@@ -128,6 +138,8 @@ class CrossEncoderTrainer:
         eval_data: list[tuple[Entity, Entity]] | None = None,
         eval_dataset2: list[Entity] | EntitySource | None = None,
         blocking: BlockingStrategy = DEFAULT_BLOCKING,
+        negative_data: list[tuple[Entity, Entity]] | None = None,
+        on_epoch_end: Callable[[int], None] | None = None,
     ) -> None:
         self.model = model
         self.args = args
@@ -135,6 +147,8 @@ class CrossEncoderTrainer:
         self.eval_data = eval_data
         self.eval_dataset2 = eval_dataset2
         self.blocking = blocking
+        self.negative_data = negative_data
+        self.on_epoch_end = on_epoch_end
         self.eval_history: list[EvaluationReport] = []
 
     def train(self) -> None:
@@ -144,10 +158,13 @@ class CrossEncoderTrainer:
         self.model.to(device)
         self.model = apply_peft(self.model, args)
 
-        dataset1, dataset2, ground_truth = _entities_and_ground_truth(self.train_data)
-        negatives = sample_hard_negatives(
-            dataset1, dataset2, ground_truth, self.blocking, top_k=args.negative_samples_ratio
-        )
+        if self.negative_data is not None:
+            negatives = list(self.negative_data)
+        else:
+            dataset1, dataset2, ground_truth = _entities_and_ground_truth(self.train_data)
+            negatives = sample_hard_negatives(
+                dataset1, dataset2, ground_truth, self.blocking, top_k=args.negative_samples_ratio
+            )
         examples: list[tuple[Entity, Entity, float]] = [
             (entity1, entity2, 1.0) for entity1, entity2 in self.train_data
         ] + [(entity1, entity2, 0.0) for entity1, entity2 in negatives]
@@ -161,7 +178,7 @@ class CrossEncoderTrainer:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         logger.info(
-            "CrossEncoderTrainer: %d examples (%d positive, %d mined negative), "
+            "CrossEncoderTrainer: %d examples (%d positive, %d negative), "
             "%d batches/epoch, %d epochs",
             len(examples),
             len(self.train_data),
@@ -182,6 +199,8 @@ class CrossEncoderTrainer:
                 loss = functional.binary_cross_entropy_with_logits(logits, labels)
                 optimizer.zero_grad()
                 loss.backward()  # type: ignore[no-untyped-call]
+                if args.max_grad_norm is not None:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), args.max_grad_norm)
                 optimizer.step()
                 if scheduler is not None:
                     scheduler.step()
@@ -211,6 +230,8 @@ class CrossEncoderTrainer:
             # without this, an interruption on epoch 5 of 6 loses everything.
             torch.save(self.model.state_dict(), output_dir / "model.pt")
             logger.info("CrossEncoderTrainer: checkpoint saved to %s", output_dir / "model.pt")
+            if self.on_epoch_end is not None:
+                self.on_epoch_end(epoch)
 
     def _evaluate(self) -> EvaluationReport:
         assert self.eval_data is not None  # only called when eval_data is set

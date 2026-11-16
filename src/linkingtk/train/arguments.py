@@ -59,6 +59,14 @@ class TrainingArguments:
             ``0.0`` (the default) skips the scheduler entirely -- a flat
             learning rate for the whole run, every existing caller's
             behavior before this field existed.
+        lr_scheduler: Shape of the post-warmup decay. ``"linear"`` (the
+            default) keeps the ``warmup_ratio`` behavior above.
+            ``"cosine"`` always schedules -- cosine annealing to zero via
+            ``transformers.get_cosine_schedule_with_warmup``, warming up
+            for ``warmup_ratio`` of steps first (none if ``0.0``).
+        max_grad_norm: Clip the global gradient norm to this value before
+            each optimizer step (``CrossEncoderTrainer`` only). ``None``
+            (the default) disables clipping.
     """
 
     output_dir: str
@@ -74,3 +82,5 @@ class TrainingArguments:
     device: str = "cpu"
     weight_decay: float = 0.01
     warmup_ratio: float = 0.0
+    lr_scheduler: Literal["linear", "cosine"] = "linear"
+    max_grad_norm: float | None = None
