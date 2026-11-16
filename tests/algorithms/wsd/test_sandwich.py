@@ -246,6 +246,13 @@ class TestEncoder:
         ]
         return mentions, senses, [("m1", "fish"), ("m2", "music")]
 
+    def test_loads_fp32_even_from_fp16_checkpoint(self, tmp_path: Path) -> None:
+        source = SandwichEncoder(_TINY_MODEL, max_length=32)
+        source.model.half().save_pretrained(tmp_path / "fp16")
+        source.tokenizer.save_pretrained(tmp_path / "fp16")
+        reloaded = SandwichEncoder.from_checkpoint(tmp_path / "fp16")
+        assert {p.dtype for p in reloaded.parameters()} == {torch.float32}
+
     def test_score_shapes_and_from_checkpoint_roundtrip(self, tmp_path: Path) -> None:
         mentions, senses, _ = self._data()
         encoder = SandwichEncoder(_TINY_MODEL, max_length=32, forward_batch_size=1)

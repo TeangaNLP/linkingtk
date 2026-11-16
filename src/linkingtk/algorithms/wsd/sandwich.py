@@ -249,9 +249,12 @@ class SandwichEncoder(nn.Module):
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        # Always fp32: transformers 5 loads a checkpoint in its *stored* dtype by
+        # default, and ``microsoft/deberta-v3-small`` is stored in fp16 -- AdamW
+        # steps on fp16 weights turn the loss NaN after the first update.
         self.model = AutoModelForSequenceClassification.from_pretrained(
             model_name_or_path, num_labels=2
-        )
+        ).float()
         self.max_length = max_length
         self.forward_batch_size = forward_batch_size
 
