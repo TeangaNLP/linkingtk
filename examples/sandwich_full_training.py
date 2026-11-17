@@ -42,6 +42,7 @@ import argparse
 import logging
 import random
 from pathlib import Path
+from xml.etree import ElementTree
 
 import torch
 from sandwich_reproduction import _EVAL_SETS, _PosRestrictedMatch, _wordnet_pos_of_synset_id
@@ -55,7 +56,7 @@ from linkingtk.algorithms.wsd.sandwich import (
 from linkingtk.core.entity import Entity
 from linkingtk.datasets.ufsac import UfsacDataset
 from linkingtk.eval import Evaluator
-from linkingtk.sources.wn import WnEntitySource
+from linkingtk.sources.wn import WnEntitySource, sensekey_to_synset_id
 from linkingtk.train.arguments import TrainingArguments
 from linkingtk.train.cross_encoder import CrossEncoderTrainer
 
@@ -64,6 +65,77 @@ _OUTPUT_DIR = Path.home() / ".cache" / "linkingtk" / "sandwich_trained"
 _POS_GROUPS = {"encoder-v": {"n", "v"}, "encoder-nv": {"n", "a", "r"}}
 
 logger = logging.getLogger("sandwich_full_training")
+
+
+def wordnet_example_instances(
+    wngt_path: Path, lexicon: str = "omw-en:1.4"
+) -> tuple[list[Entity], list[tuple[str, str]]]:
+    """Each WordNet synset's example sentences, with the synset's own headword as the instance.
+
+    Read from UFSAC's ``wngt.xml``, whose ``<sentence wn30_key=...>`` is a
+    synset's gloss followed by its examples, ``;``-separated, with words
+    sense-tagged. Only the gloss's *own* headword inside an *example* is
+    kept -- the data that ships with WordNet itself. WNGT's other tags
+    (words inside glosses, other words in examples) are left out, and each
+    instance's context is its example sentence alone, without the gloss,
+    which would otherwise put the definition in the context.
+    """
+    mentions: list[Entity] = []
+    ground_truth: list[tuple[str, str]] = []
+    resolved: dict[str, str | None] = {}
+
+    def synset(key: str) -> str | None:
+        if key not in resolved:
+            resolved[key] = sensekey_to_synset_id(key, lexicon=lexicon)
+        return resolved[key]
+
+    sentence_keys: set[str] = set()
+    words: list[tuple[str, str, list[str], str | None]] = []
+    for event, elem in ElementTree.iterparse(str(wngt_path), events=("start", "end")):
+        if event == "start" and elem.tag == "sentence":
+            sentence_keys = set((elem.get("wn30_key") or "").split(";")) - {""}
+            words = []
+        elif event == "end" and elem.tag == "word":
+            surface = elem.get("surface_form", "")
+            key_attr = elem.get("wn30_key")
+            words.append(
+                (
+                    surface,
+                    elem.get("lemma", surface),
+                    key_attr.split(";") if key_attr else [],
+                    elem.get("pos"),
+                )
+            )
+            elem.clear()
+        elif event == "end" and elem.tag == "sentence":
+            segments: list[list[tuple[str, str, list[str], str | None]]] = [[]]
+            for word in words:
+                if word[0] == ";":
+                    segments.append([])
+                else:
+                    segments[-1].append(word)
+            for seg_index, segment in enumerate(segments[1:], start=1):  # [0] is the gloss
+                text = " ".join(w[0] for w in segment)
+                offset = 0
+                for word_index, (surface, lemma, keys, pos) in enumerate(segment):
+                    start, offset = offset, offset + len(surface) + 1
+                    if not sentence_keys & set(keys):
+                        continue
+                    gold = {sid for k in keys if (sid := synset(k)) is not None}
+                    if not gold:
+                        continue
+                    mention_id = f"wnex:{len(mentions)}:{seg_index}:{word_index}"
+                    mentions.append(
+                        Entity(
+                            id=mention_id,
+                            labels=[lemma],
+                            context=(text, start, start + len(surface)),
+                            properties={"pos": pos} if pos else {},
+                        )
+                    )
+                    ground_truth.extend((mention_id, sid) for sid in gold)
+            elem.clear()
+    return mentions, ground_truth
 
 
 def build_examples(
@@ -160,6 +232,11 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="Only the first N SemCor mentions (smoke test)")
     parser.add_argument("--encoders", nargs="+", default=list(_POS_GROUPS))
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--wordnet-examples",
+        action="store_true",
+        help="Also train on WordNet's example sentences (headword only, from UFSAC wngt.xml)",
+    )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     logging.getLogger("linkingtk").setLevel(logging.INFO)
@@ -174,6 +251,11 @@ def main() -> None:
         keep = {m.id for m in mentions}
         ground_truth = [(m, s) for m, s in ground_truth if m in keep]
     assert isinstance(senses, WnEntitySource)
+    if args.wordnet_examples:
+        extra_mentions, extra_truth = wordnet_example_instances(args.ufsac_dir / "wngt.xml")
+        logger.info("WordNet examples: %d headword instances", len(extra_mentions))
+        mentions = mentions + extra_mentions
+        ground_truth = ground_truth + extra_truth
     groups = build_examples(
         mentions,
         senses,
