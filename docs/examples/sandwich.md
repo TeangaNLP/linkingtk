@@ -147,4 +147,56 @@ Supporting this needed three generic additions to
 - an `on_epoch_end` callback;
 - `TrainingArguments.lr_scheduler="cosine"` and `max_grad_norm`.
 
-<!-- TRAINING-RESULTS -->
+### Results
+
+The full run took about 16 hours on one RTX 4090 in fp32: 10 epochs of
+`encoder-v` (2.17M pairs), then 10 of `encoder-nv`. The best SE07 epochs
+were `encoder-v` 8 (71.9) and `encoder-nv` 4 (58.9). `encoder-nv` scores
+low on SE07 alone because SE07 is mostly verbs, which it is never trained on.
+
+All rows below go through the same `SandwichLinker` with
+`WordNetNeighbours`, so only the encoders differ:
+
+| Encoders | SE07 | SE2 | SE3 | SE13 | SE15 | ALL |
+|---|---|---|---|---|---|---|
+| Released pair | 78.9 | 86.9 | 83.5 | 91.2 | 90.5 | **87.0** |
+| **Trained here on SemCor** | 69.9 | 78.0 | 76.1 | 77.1 | 79.2 | **77.0** |
+| Released `encoder-v` alone | 80.4 | | | | | 82.7 |
+| Trained `encoder-v` alone | 71.9 | | | | | 74.3 |
+| *GlossBERT, SemCor-trained BERT-base (`glossbert.md`)* | | | | | | *76.7* |
+
+**Our recipe reaches about the level that SemCor-only cross-encoders
+usually reach, but not the released checkpoints' level.** We traced the
+10-point gap to the training data, not the recipe:
+
+- **The released encoders know senses that SemCor never shows.** For ALL
+  instances whose gold sense does not occur in SemCor (863 of 7,253), the
+  released `encoder-v` is *more* accurate (86.1) than on SemCor-seen senses
+  (82.3). Every SemCor-only system drops on unseen senses, and ours does
+  too (75.5 seen vs 65.6 unseen).
+- **They know WordNet's own example sentences.** We disambiguated 3,000
+  WordNet example sentences, taking the example's own synset as gold,
+  half with senses seen in SemCor and half unseen. The released
+  `encoder-v` scored 76.5 on the seen half and **80.3 on the unseen
+  half**. Ours scored 60.9 and **31.1**. Having no SemCor frequency prior
+  at all, as the released model does, cannot come from SemCor-only
+  training.
+- **It is not memorisation of the test sets.** A context-free probe gives
+  the released model the same advantage on unseen senses on the dev set
+  SE07 (+10.5 over ours) as on the four test sets (+5.7 to +11.6). The
+  probe scores `[D] word [D]` with the sentence removed. A model trained on
+  the test documents would show the advantage on the test sets only.
+
+So the released encoders were very likely trained on SemCor **plus**
+sense-annotated data covering WordNet broadly, for example WordNet's glosses
+and examples, which BabelNet bundles. The paper only says it "train[s] on
+the SemCor corpus". The obvious next step, not run here, is to add WordNet
+examples and glosses as training contexts (`WordNetNeighbours` already
+supplies the definitions) and retrain.
+
+This run also exposed a generic bug, now fixed. `CrossEncoderTrainer`
+never put the model into train mode, and HF `from_pretrained` returns
+models in eval mode. As a result, epoch 1 of any freshly loaded
+transformer trained with dropout off. Dropout came back on only after the
+first evaluation. In this run that affected only epoch 1, and the best
+epochs are 8 and 4.

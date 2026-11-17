@@ -261,3 +261,23 @@ class TestMicroBatching:
         micro = trained_params(3)
         for a, b in zip(full, micro, strict=True):
             assert torch.allclose(a, b, atol=1e-6)
+
+
+class TestTrainMode:
+    def test_model_arriving_in_eval_mode_trains_with_dropout_on(self, tmp_path: Path) -> None:
+        # HF from_pretrained returns models in eval(); the trainer must not
+        # silently train the first epoch with dropout off.
+        pairs = _toy_pairs()
+        model = _ToyScorer(_WORDS)
+        modes: list[bool] = []
+        original = model.score
+
+        def spy(batch: list[tuple[Entity, Entity]]) -> torch.Tensor:
+            modes.append(model.training)
+            return original(batch)
+
+        model.score = spy  # type: ignore[method-assign]
+        model.eval()
+        args = TrainingArguments(output_dir=str(tmp_path), num_epochs=1, batch_size=4)
+        CrossEncoderTrainer(model=model, args=args, train_data=pairs, negative_data=[]).train()
+        assert modes and all(modes)

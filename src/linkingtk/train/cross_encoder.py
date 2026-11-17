@@ -157,6 +157,10 @@ class CrossEncoderTrainer:
         device = resolve_device(args.device)
         self.model.to(device)
         self.model = apply_peft(self.model, args)
+        # A model's submodules can arrive in eval mode -- HF ``from_pretrained``
+        # returns its model in eval() -- so without this, dropout would stay
+        # off until the first ``_evaluate`` call switched it back on.
+        self.model.train()
 
         if self.negative_data is not None:
             negatives = list(self.negative_data)

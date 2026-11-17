@@ -30,7 +30,8 @@ the reference's own benchmark files (every instance's candidate list is
 single-POS) -- the same convention as ``esc_reproduction.py``.
 
 Published target (the reference README, released code): SE07=80.9,
-SE2=87.8, SE3=85.7, SE13=92.6, SE15=91.2, ALL=88.6. The paper's own Table
+SE2=87.8, SE3=85.7, SE13=92.6, SE15=91.2, ALL=88.6 (88.4 on the standard
+Raganato ALL, which is what this script compares against). The paper's own Table
 1 (unreleased code): SE07=81.2, SE2=88.5, SE3=84.9, SE13=92.5, SE15=91.7,
 ALL=89.0.
 
@@ -62,14 +63,17 @@ from linkingtk.eval import Evaluator
 _CHECKPOINT_DIR = Path.home() / ".cache" / "linkingtk" / "sandwich_checkpoint"
 _UFSAC_DIR = Path.home() / "data" / "ufsac-public-2.1"
 
-# (UFSAC filename stem, label, reference-README F1)
+# (UFSAC filename stem, label, released-checkpoint F1). Per-split values are
+# the reference README's; ALL is the standard 7,253-instance Raganato ALL
+# recomputed from the reference's own predictions -- the README's "88.6"
+# mixes in SemEval-2010 and leaves out SE07 (see docs/examples/sandwich.md).
 _EVAL_SETS = [
     ("raganato_semeval2007", "SE07", 80.9),
     ("raganato_senseval2", "SE2", 87.8),
     ("raganato_senseval3", "SE3", 85.7),
     ("raganato_semeval2013", "SE13", 92.6),
     ("raganato_semeval2015", "SE15", 91.2),
-    ("raganato_ALL", "ALL", 88.6),
+    ("raganato_ALL", "ALL", 88.4),
 ]
 
 _PENN_TO_WORDNET_POS = {"N": "n", "V": "v", "J": "a", "R": "r"}
