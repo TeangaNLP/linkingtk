@@ -181,18 +181,86 @@ usually reach, but not the released checkpoints' level.** We traced the
   half**. Ours scored 60.9 and **31.1**. Having no SemCor frequency prior
   at all, as the released model does, cannot come from SemCor-only
   training.
-- **It is not memorisation of the test sets.** A context-free probe gives
-  the released model the same advantage on unseen senses on the dev set
-  SE07 (+10.5 over ours) as on the four test sets (+5.7 to +11.6). The
-  probe scores `[D] word [D]` with the sentence removed. A model trained on
-  the test documents would show the advantage on the test sets only.
 
 So the released encoders were very likely trained on SemCor **plus**
-sense-annotated data covering WordNet broadly, for example WordNet's glosses
-and examples, which BabelNet bundles. The paper only says it "train[s] on
-the SemCor corpus". The obvious next step, not run here, is to add WordNet
-examples and glosses as training contexts (`WordNetNeighbours` already
-supplies the definitions) and retrain.
+sense-annotated data covering WordNet broadly. The paper only says it
+"train[s] on the SemCor corpus".
+
+### Is it test-set leakage?
+
+We found no sign of it. Every probe below compares the released
+`encoder-v` with ours through the same linker. These are statistical
+probes, not proof.
+
+- **Probe 1: with the sentence removed, the advantage is the same on dev
+  and test.** Here the model sees only `[D] word [D]`. The released model's
+  lead over ours on SemCor-unseen senses is +10.5 on the dev set SE07 and
+  +5.7 to +11.6 on the four test sets. A model that had memorised the test
+  documents would gain on the test sets only.
+- **Probe 2: the pattern holds on a corpus outside the benchmark.**
+  SemEval-2007 Task 7 is not a Raganato split. There, too, the released
+  model is more accurate on SemCor-unseen gold senses (97.9) than on seen
+  ones (90.9).
+- **Probe 3: deleting words doesn't break the test sets more.** We deleted
+  30% of the non-target words at random and measured the accuracy drop
+  for the released model / ours. A model that memorised test sentences
+  should break more on the test sets. Instead:
+  - SE07 (dev): 9.2 / 7.0
+  - SE2: 4.3 / 2.1
+  - SE3: 8.2 / 3.0
+  - SE13: 6.1 / 0.8
+  - SE15: 5.5 / 1.7
+  - Task 7: 4.0 / 1.9
+
+  The released model drops more everywhere, including on the dev set. That
+  suggests it uses the context more and the SemCor sense frequencies less,
+  not that it memorised test sentences.
+- **Probe 4: the graph carries no hidden knowledge of the answers.** See
+  [above](#what-the-references-numbers-mean).
+
+Two loose ends remain:
+
+- **MASC.** On a 6,000-instance sample of MASC, also outside the
+  benchmark, the released model's advantage mostly disappears: 67.1 vs our
+  68.6 on SemCor-seen senses, +7.1 on unseen. We have not explained this.
+  MASC's different genres and noisier annotation are plausible causes.
+- **The paper's unreleased first stage.** The paper's 89.0 also uses a
+  candidate-filtering model trained on "the SemCor corpus [...] combined
+  with datasets from Raganato et al. (2017a)", which could include the test
+  sets. It is not released and none of the numbers here use it, so this
+  page cannot check it.
+
+### Which extra data? Probing WNGT
+
+UFSAC's `wngt.xml` (WordNet Gloss Tagged) is the usual extra WSD training
+corpus, and it is not part of Raganato's evaluation collection. It holds
+every WordNet gloss, with the content words *inside* it sense-tagged, plus
+the synset's examples, with the headword tagged in its own example. So the
+WordNet-examples probe above was mostly scoring WNGT instances.
+
+We took 1,500 random noun/verb instances per cell. Monosemous instances
+were not excluded; they are trivially correct for both models. Below is the
+released `encoder-v`'s lead over ours, in points, next to its lead on
+data it could not have been trained on:
+
+| | SemCor-seen gold | SemCor-unseen gold |
+|---|---|---|
+| Raganato ALL (benchmark) | +6.8 | +20.5 |
+| SemEval-2007 Task 7 (held out) | +2.9 | +17.7 |
+| WNGT, words in example sentences | +3.4 | +24.3 |
+| WNGT, tagged words *inside glosses* | −0.6 | +9.6 |
+
+- **Example sentences:** the released model's lead is slightly larger than
+  on held-out text, which fits training on WordNet's examples.
+- **Gloss-internal words:** its lead is *smaller* than on held-out text,
+  and on SemCor-seen senses it ties our SemCor-only model. A model trained
+  on WNGT's gloss annotations should do best there.
+
+So WNGT as a whole was probably *not* in the training data. WordNet's
+example sentences, which also ship with BabelNet, remain the likely
+extra source. The obvious next step, not run here, is to retrain with
+SemCor plus WordNet's examples as extra contexts and see whether that
+closes the gap.
 
 This run also exposed a generic bug, now fixed. `CrossEncoderTrainer`
 never put the model into train mode, and HF `from_pretrained` returns
