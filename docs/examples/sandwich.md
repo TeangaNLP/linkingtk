@@ -161,6 +161,7 @@ All rows below go through the same `SandwichLinker` with
 |---|---|---|---|---|---|---|
 | Released pair | 78.9 | 86.9 | 83.5 | 91.2 | 90.5 | **87.0** |
 | **Trained here on SemCor** | 69.9 | 78.0 | 76.1 | 77.1 | 79.2 | **77.0** |
+| Trained here on SemCor + WordNet examples (`--wordnet-examples`) | 71.0 | 78.3 | 76.5 | 79.2 | 81.1 | 78.0 |
 | Released `encoder-v` alone | 80.4 | | | | | 82.7 |
 | Trained `encoder-v` alone | 71.9 | | | | | 74.3 |
 | *GlossBERT, SemCor-trained BERT-base (`glossbert.md`)* | | | | | | *76.7* |
@@ -256,11 +257,56 @@ data it could not have been trained on:
   and on SemCor-seen senses it ties our SemCor-only model. A model trained
   on WNGT's gloss annotations should do best there.
 
-So WNGT as a whole was probably *not* in the training data. WordNet's
-example sentences, which also ship with BabelNet, remain the likely
-extra source. The obvious next step, not run here, is to retrain with
-SemCor plus WordNet's examples as extra contexts and see whether that
-closes the gap.
+So WNGT as a whole was probably *not* in the training data, which left
+WordNet's example sentences as the leading candidate.
+
+### Retraining with WordNet examples
+
+`--wordnet-examples` adds 47,876 instances to SemCor's: every WordNet
+example sentence, with its synset's own headword as the target and the
+example alone as context (the gloss is left out, since it would put the
+answer in the context). Otherwise it uses the same recipe and seeds as
+the SemCor-only run. Two other things changed: the trainer fix below was
+in place from epoch 1, and the extra data added about 10% more pairs.
+
+**It barely helps: ALL rises from 77.0 to 78.0** (table above). The best
+epochs are `encoder-v` 7 (SE07 71.9) and `encoder-nv` 3 (60.9). On ALL's
+SemCor-unseen gold senses, the new `encoder-v` reaches 67.6, against 65.6
+before and 86.1 for the released one.
+
+The breakdown below shows why. These are ambiguous instances only (at
+least 2 candidates), released `encoder-v` / ours (SemCor + examples):
+
+| | SemCor-seen gold | Unseen, has WordNet example | Unseen, no WordNet example |
+|---|---|---|---|
+| Raganato ALL | 79.1 / 71.1 | 66.0 / 38.3 | **89.4 / 53.3** |
+| SemEval-2007 Task 7 (held out) | 89.6 / 86.1 | 94.7 / 64.0 | **97.6 / 79.8** |
+| MASC sample (held out) | 65.8 / 68.4 | 47.1 / 49.0 | 57.6 / 54.3 |
+
+- **The released model's strongest cell has no WordNet example to learn
+  from.** That is ambiguous senses that appear in neither SemCor nor any
+  WordNet example. There it scores 89.4 on Raganato, *higher* than on
+  senses SemCor does cover. So WordNet examples cannot be the missing data.
+- **OMSTI is not it either.** OMSTI is the other training corpus in
+  Raganato et al.'s framework; the paper's first stage is said to use
+  "datasets from Raganato et al.". It covers only 70 of these 509
+  ambiguous unseen Raganato instances, and the released model is *less*
+  accurate on those (64.3) than on the rest (78.4).
+- **The effect is present on SemEval-2007 Task 7 but absent on MASC.**
+  Task 7 is outside the benchmark, which argues against plain test-set
+  memorisation. On MASC the released model does no better than ours in
+  any cell, even on SemCor-seen senses. Noisy MASC annotation could cap
+  both models; we have not verified that.
+
+**Where the released encoders' knowledge of these senses comes from is
+still open.** The remaining candidates are:
+
+- BabelNet-only material such as Wiktionary or Wikipedia glosses and
+  examples. The authors use BabelNet 5 throughout, and under its licence
+  it can't be shipped or tested here.
+- Training data that overlaps the evaluation sets.
+
+The probes above argue against the second, but cannot exclude it.
 
 This run also exposed a generic bug, now fixed. `CrossEncoderTrainer`
 never put the model into train mode, and HF `from_pretrained` returns
