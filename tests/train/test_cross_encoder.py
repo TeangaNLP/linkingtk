@@ -235,3 +235,49 @@ class TestPeft:
 
         peft_params = sum(p.numel() for p in trainer.model.parameters() if p.requires_grad)
         assert peft_params < full_params
+
+
+class TestMicroBatching:
+    def test_micro_batches_give_the_full_batch_update(self, tmp_path: Path) -> None:
+        def trained_params(micro_batch_size: int | None) -> list[torch.Tensor]:
+            pairs = _toy_pairs()
+            negatives = [
+                (m, s) for (m, _), (_, s) in zip(pairs, pairs[1:] + pairs[:1], strict=True)
+            ]
+            model = _ToyScorer(_WORDS)
+            args = TrainingArguments(
+                output_dir=str(tmp_path / str(micro_batch_size)),
+                learning_rate=0.1,
+                num_epochs=1,
+                batch_size=len(pairs) + len(negatives),  # one batch: shuffle order irrelevant
+                micro_batch_size=micro_batch_size,
+            )
+            CrossEncoderTrainer(
+                model=model, args=args, train_data=pairs, negative_data=negatives
+            ).train()
+            return [p.detach().clone() for p in model.parameters()]
+
+        full = trained_params(None)
+        micro = trained_params(3)
+        for a, b in zip(full, micro, strict=True):
+            assert torch.allclose(a, b, atol=1e-6)
+
+
+class TestTrainMode:
+    def test_model_arriving_in_eval_mode_trains_with_dropout_on(self, tmp_path: Path) -> None:
+        # HF from_pretrained returns models in eval(); the trainer must not
+        # silently train the first epoch with dropout off.
+        pairs = _toy_pairs()
+        model = _ToyScorer(_WORDS)
+        modes: list[bool] = []
+        original = model.score
+
+        def spy(batch: list[tuple[Entity, Entity]]) -> torch.Tensor:
+            modes.append(model.training)
+            return original(batch)
+
+        model.score = spy  # type: ignore[method-assign]
+        model.eval()
+        args = TrainingArguments(output_dir=str(tmp_path), num_epochs=1, batch_size=4)
+        CrossEncoderTrainer(model=model, args=args, train_data=pairs, negative_data=[]).train()
+        assert modes and all(modes)

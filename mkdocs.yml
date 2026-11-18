@@ -50,6 +50,7 @@ nav:
           - GlossBERT: examples/glossbert.md
           - EWISER: examples/ewiser.md
           - ESC: examples/esc.md
+          - SANDWiCH: examples/sandwich.md
           - Republishing UFSAC to the Hugging Face Hub: examples/publish_ufsac.md
       - ExactMatch blocking & evaluation: examples/exact_match_blocking.md
       - Advanced Topics:
