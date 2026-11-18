@@ -189,47 +189,90 @@ sense-annotated data covering WordNet broadly. The paper only says it
 
 ### Is it test-set leakage?
 
-We found no sign of it. Every probe below compares the released
-`encoder-v` with ours through the same linker. These are statistical
-probes, not proof.
+**Probably, in part.** The released encoders reproduce annotation errors
+in the original test sets that an expert has since corrected, and no
+other system we checked does this.
 
-- **Probe 1: with the sentence removed, the advantage is the same on dev
-  and test.** Here the model sees only `[D] word [D]`. The released model's
-  lead over ours on SemCor-unseen senses is +10.5 on the dev set SE07 and
-  +5.7 to +11.6 on the four test sets. A model that had memorised the test
-  documents would gain on the test sets only.
-- **Probe 2: the pattern holds on a corpus outside the benchmark.**
-  SemEval-2007 Task 7 is not a Raganato split. There, too, the released
-  model is more accurate on SemCor-unseen gold senses (97.9) than on seen
-  ones (90.9).
-- **Probe 3: deleting words doesn't break the test sets more.** We deleted
-  30% of the non-target words at random and measured the accuracy drop
-  for the released model / ours. A model that memorised test sentences
-  should break more on the test sets. Instead:
-  - SE07 (dev): 9.2 / 7.0
-  - SE2: 4.3 / 2.1
-  - SE3: 8.2 / 3.0
-  - SE13: 6.1 / 0.8
-  - SE15: 5.5 / 1.7
-  - Task 7: 4.0 / 1.9
+#### The relabel test
 
-  The released model drops more everywhere, including on the dev set. That
-  suggests it uses the context more and the SemCor sense frequencies less,
-  not that it memorised test sentences.
-- **Probe 4: the graph carries no hidden knowledge of the answers.** See
-  [above](#what-the-references-numbers-mean).
+Maru et al. (2022, "Nibbling at the Hard Core of WSD", §4.2/§5.2) had an
+expert linguist revise every Raganato ALL instance except SemEval-2007,
+plus SemEval-2010. Wrong senses (**error:sense**) were corrected, and
+equally valid extra senses were added. The reference repository ships
+both versions:
 
-Two loose ends remain:
+- `test.json` carries the original gold labels.
+- `s10.json`, `softEN.json` and `hardEN.json` carry the corrected labels
+  for the same instance ids.
 
-- **MASC.** On a 6,000-instance sample of MASC, also outside the
-  benchmark, the released model's advantage mostly disappears: 67.1 vs our
-  68.6 on SemCor-seen senses, +7.1 on unseen. We have not explained this.
-  MASC's different genres and noisier annotation are plausible causes.
-- **The paper's unreleased first stage.** The paper's 89.0 also uses a
-  candidate-filtering model trained on "the SemCor corpus [...] combined
-  with datasets from Raganato et al. (2017a)", which could include the test
-  sets. It is not released and none of the numbers here use it, so this
-  page cannot check it.
+On 404 instances the correction replaced the gold with a completely
+disjoint sense, and both senses are among the candidates. On those,
+every model below gets the same input, from `test.json`:
+
+| System | Picks the original label | Picks the corrected label |
+|---|---|---|
+| **SANDWiCH, released encoders** | **54.5** | 35.6 |
+| ConSeC (predictions shipped in the reference repo) | 34.7 | 51.0 |
+| GPT-4o / GPT-4 / GPT-3.5 (also shipped) | 30.5 / 33.0 / 27.3 | 51.5 / 48.5 / 42.9 |
+| Ours, SemCor | 30.7 | 53.0 |
+| Ours, SemCor + WordNet examples | 34.2 | 51.2 |
+
+**Only the released SANDWiCH encoders side with the labels the expert
+judged wrong.** The same reversal shows separately on SE2, SE3, SE13 and
+SemEval-2010. SE15 is the exception, with only 27 instances.
+
+The same effect shows when we score all 5,872 revised instances under
+both label sets. Every other system scores *higher* against the corrected
+labels, because the corrections fix errors and add valid alternatives.
+SANDWiCH is the only one that scores lower:
+
+| System | Original labels | Corrected labels | Change |
+|---|---|---|---|
+| ConSeC | 79.5 | 82.4 | +2.9 |
+| GPT-4o | 75.3 | 79.3 | +4.0 |
+| GPT-4 | 72.1 | 75.6 | +3.6 |
+| Ours, SemCor | 72.5 | 75.9 | +3.4 |
+| Ours, SemCor + WordNet examples | 73.3 | 76.3 | +3.1 |
+| **SANDWiCH, released encoders** | **87.3** | **86.8** | **−0.5** |
+
+The obvious explanation is that the released encoders were trained on the
+original evaluation annotations. The paper does say its first-stage
+retriever used "SemCor [...] combined with datasets from Raganato et al.
+(2017a)", the paper that published those evaluation sets. On corrected
+labels, its lead over ConSeC shrinks from 7.8 to 4.4 points.
+
+#### What it does *not* explain
+
+The released encoders also do far better than SemCor-trained systems
+where training on the original Raganato data can't help:
+
+- **42D:** 80.3, against ConSeC's 56.5 and our 33.5. 42D was built in 2022
+  from BNC text, with gold senses that are absent from SemCor and never
+  WordNet's first sense.
+- **SemEval-2007 Task 7, documents not shared with SE07:** 94.6, against
+  our 82.8. Task 7's first three documents are the same texts as SE07;
+  the other two are not.
+- **WordNet example sentences** (below).
+
+So there seem to be two effects. One is exposure to the original
+evaluation labels. The other is real extra lexical knowledge, which none
+of our candidate corpora explains (see below). The one fully held-out
+corpus we tried, MASC, shows *no* advantage for the released model at all:
+67.1 vs our 68.6 on SemCor-seen senses. That remains unexplained.
+
+#### Earlier probes, reinterpreted
+
+Our first probes compared the SE07 dev set against the test sets and
+found no difference:
+
+- context-free scoring, with only `[D] word [D]` left;
+- deleting 30% of the context words;
+- the graph check ([above](#what-the-references-numbers-mean)).
+
+The dev-vs-test comparisons only rule out leakage that spares SE07, and
+the relabel test suggests the training data wasn't selective in that
+way. Each probe also tests memorisation of surface text, which the
+relabel test does not need.
 
 ### Which extra data? Probing WNGT
 
@@ -293,8 +336,9 @@ least 2 candidates), released `encoder-v` / ours (SemCor + examples):
   ambiguous unseen Raganato instances, and the released model is *less*
   accurate on those (64.3) than on the rest (78.4).
 - **The effect is present on SemEval-2007 Task 7 but absent on MASC.**
-  Task 7 is outside the benchmark, which argues against plain test-set
-  memorisation. On MASC the released model does no better than ours in
+  Task 7 is not a Raganato split, though its first three documents are
+  SE07's texts. It holds just as strongly on the two documents that
+  are not. On MASC the released model does no better than ours in
   any cell, even on SemCor-seen senses. Noisy MASC annotation could cap
   both models; we have not verified that.
 
@@ -304,9 +348,10 @@ still open.** The remaining candidates are:
 - BabelNet-only material such as Wiktionary or Wikipedia glosses and
   examples. The authors use BabelNet 5 throughout, and under its licence
   it can't be shipped or tested here.
-- Training data that overlaps the evaluation sets.
-
-The probes above argue against the second, but cannot exclude it.
+- Training data that overlaps the evaluation sets. The relabel test in
+  [Is it test-set leakage?](#is-it-test-set-leakage) points to exposure to
+  the original Raganato/SemEval-2010 annotations. That accounts for part of
+  the Raganato gap, but not for 42D or WordNet's examples.
 
 This run also exposed a generic bug, now fixed. `CrossEncoderTrainer`
 never put the model into train mode, and HF `from_pretrained` returns
